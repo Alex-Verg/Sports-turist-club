@@ -2,7 +2,6 @@ import mysql.connector
 from mysql.connector import Error
 from configs import db_connection
 import os
-import hashlib
 
 
 class Interface:
@@ -28,10 +27,3 @@ class Interface:
     @staticmethod
     def clean():
         os.system('cls' if os.name == 'nt' else 'clear')
-
-    # @staticmethod
-    # def authorization(cursor, connection):
-    #     print("Enter your login:")
-    #     login = input()
-    #     print("Enter your password:")
-    #     password = input()
