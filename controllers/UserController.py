@@ -45,10 +45,11 @@ def insert_new_user(cursor, connection, login, password, first_name, last_name, 
         return False
 
     except Error as err:
+        connection.rollback()
         return err
 
 
-def autorization(cursor, connection, login, password):
+def authentication(cursor, connection, login, password):
     try:
         select_login = "SELECT password, enabled FROM users WHERE users.login = %s"
         cursor.execute(select_login, (login,))

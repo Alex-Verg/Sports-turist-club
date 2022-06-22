@@ -1,4 +1,4 @@
-class Role:
+class EventType:
 
     def __init__(self, id, name):
         self.__id = id
