@@ -2,3 +2,4 @@
 venv/
 configs/
 controllers/__pycache__/
+models/__pycache__/
