@@ -1,6 +1,7 @@
 from mysql.connector import Error
 from models.Event import Event
 from models.User import User
+from models.Status import Status
 from exceptions.ErrorUserPermissions import ErrorUserPermissions
 from controllers import RoleController
 
@@ -15,6 +16,48 @@ def insert_new_event(cursor, connection, current_user: User, new_event: Event):
                                 (%s, %s, %s, %s, %s, %s, %s, %s)"""
             params = (new_event.name, current_user.id, new_event.event_type.id, new_event.description, new_event.event_date, new_event.location, new_event.price, new_event.restrictions)
             cursor.execute(new_role_query, params)
+
+            # TODO Add main organaizer to participants
+
+            # TODO Add event to history
+
+            connection.commit()
+    except Error as err:
+        connection.rollback()
+        return err
+    except ErrorUserPermissions as err:
+        return err
+
+
+def update_event_status(cursor, connection, current_user: User, event: Event, next_status: Status):
+    try:
+        permission_role = RoleController.role_from_base(cursor, 'Manager')
+        if not current_user.has_role(permission_role):
+            raise ErrorUserPermissions
+        else:
+            update_event_query = """UPDATE events 
+                              SET events.status = %s, 
+                                  events.closed = %s,
+                                  events.date_update = current_timestamp()
+                              WHERE events.id = %s"""
+            params = (next_status.id, next_status.closed, event.id)
+            cursor.execute(update_event_query, params)
+            event.closed = next_status.closed
+            event.status = next_status
+
+            select_query = """SELECT * FROM events WHERE id = %s"""
+            cursor.execute(select_query, (event.id, ))
+            previous_record = cursor.fetchall()[0]
+            add_in_history_query = """INSERT INTO history_events(name, main_organaizer, status, type, description, 
+                                        event_date, location, price, changed_by, date_create, restrictions) VALUES 
+                                        (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+            """
+            params = (previous_record['name'], previous_record['main_organaizer'], previous_record['status'],
+                      previous_record['type'], previous_record['description'], previous_record['event_date'],
+                      previous_record['location'], previous_record['price'], current_user.id, previous_record['date_create'],
+                      previous_record['restrictions'])
+            cursor.execute(add_in_history_query, params)
+
             connection.commit()
     except Error as err:
         connection.rollback()

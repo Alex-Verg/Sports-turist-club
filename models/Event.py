@@ -9,7 +9,6 @@ class Event:
     def __init__(self, main_info, event_type, status=None, restrictions=None):
         self.__id = main_info['id']
         self.__name = main_info['name']
-
         self.__status = status
         self.__event_type = event_type
         self.__description = main_info['description']

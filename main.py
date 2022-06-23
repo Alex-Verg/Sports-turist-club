@@ -8,6 +8,7 @@ from models.User import User
 from models.Role import Role
 from models.EventType import EventType
 from models.Event import Event
+from models.Status import Status
 
 
 if __name__ == "__main__":
@@ -16,20 +17,15 @@ if __name__ == "__main__":
     #                 'Main', 'Admin', '2022-06-23', 'mainadmin@gmail.com', '+380000000000'))
     current_user = UserController.authentication(cursor, connection, 'Sasha10', 'alex2002')
     # up_user = UserController.authentication(cursor, connection, 'Sasha10', 'alex2002')
-    rest = {'age': '18+',
-            'hiking experience': '1st category'}
-    rest = json.dumps(rest)
-    main_info = {
-        'id': None,
-        'name': '3nd Category Hiking in Carpathians',
-        'description': 'Cool event!',
-        'event_date': datetime.datetime(2023, 8, 1, 0, 0, 0, 0),
-        'location': "Carpathian mountains",
-        'price': 3000,
-        'closed': 0
-    }
-    new_event = Event(main_info, EventType({"id": 1, "name": 'Hiking'}))
-    answ = EventController.insert_new_event(cursor, connection, current_user, new_event)
+
+    new_status = Status({
+        "id": 4,
+        "name": "Past",
+        "closed": 0
+    }, [])
+    cursor.execute('SELECT id, name, description, event_date, location, price, closed FROM events WHERE id = 3')
+    event = Event(cursor.fetchall()[0], EventType({'id': 1, 'name': 'Hiking'}))
+    answ = EventController.update_event_status(cursor, connection, current_user, event, new_status)
     if isinstance(answ, Exception):
         print(answ)
     # select = "SELECT * FROM user_role"

@@ -4,7 +4,7 @@ class Status:
         self.__id = main_info['id']
         self.__name = main_info['name']
         self.__closed = main_info['closed']
-        # self.__next_statuses = next_statuses
+        self.__next_statuses = next_statuses
 
     @property
     def id(self):
@@ -33,10 +33,10 @@ class Status:
     def closed(self, new_closed):
         closed = new_closed
 
-    # @property
-    # def next_statuses(self):
-    #     return self.__next_statuses
-    #
-    # @next_statuses.setter
-    # def next_statuses(self, new_next_statuses):
-    #     self.__next_statuses = new_next_statuses
+    @property
+    def next_statuses(self):
+        return self.__next_statuses
+
+    @next_statuses.setter
+    def next_statuses(self, new_next_statuses):
+        self.__next_statuses = new_next_statuses

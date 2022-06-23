@@ -83,8 +83,11 @@ def update_user(cursor, connection, current_user: User, update_user: User, new_r
         else:
             new_role_query = """INSERT INTO user_role(user, role) VALUES (%s, %s)"""
             cursor.execute(new_role_query, (update_user.id, new_role.id))
-            connection.commit()
+            update_user.roles.append(new_role)
 
+            # TODO Chande date_modified in users
+
+            connection.commit()
     except Error as err:
         connection.rollback()
         return err
