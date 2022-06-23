@@ -3,6 +3,7 @@ import os
 import hashlib
 from models.User import User
 from models.Role import Role
+from models.Event import Event
 from exceptions.ErrorAuthentication import ErrorAuthentication
 from exceptions.ErrorUserPermissions import ErrorUserPermissions
 from controllers import RoleController
@@ -94,3 +95,19 @@ def update_user(cursor, connection, current_user: User, update_user: User, new_r
         return err
     except ErrorUserPermissions as err:
         return err
+
+
+def help_organaize_event(cursor, connection, current_user: User, event: Event):
+    pass
+
+
+def take_part_in_event(cursor, connection, current_user: User, event: Event):
+    pass
+
+
+def view_event_participant(cursor, connection, current_user: User, event: Event):
+    pass
+
+
+def get_user_list(cursor, connection, current_user: User):
+    pass

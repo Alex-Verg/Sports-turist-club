@@ -82,3 +82,11 @@ def update_event_status(cursor, connection, current_user: User, event: Event, ne
         return err
     except ErrorUserPermissions as err:
         return err
+
+
+def get_events_for_update(cursor, connection, current_user: User):
+    pass
+
+
+def get_upcoming_events(cursor, connection, current_user: User):
+    pass

@@ -2,6 +2,7 @@ from models.Role import Role
 
 
 def role_from_base(cursor, needed_role):
+    # TODO exception
     select_role = """SELECT *
                      FROM role
                      WHERE name = %s"""
