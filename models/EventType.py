@@ -1,8 +1,8 @@
 class EventType:
 
-    def __init__(self, id, name):
-        self.__id = id
-        self.__name = name
+    def __init__(self, main_info):
+        self.__id = main_info['id']
+        self.__name = main_info['name']
 
     @property
     def id(self):

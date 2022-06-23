@@ -1,12 +1,12 @@
 import json
-from Status import Status
-from EventType import EventType
+from models.Status import Status
+from models.EventType import EventType
 import datetime
 
 
 class Event:
 
-    def __init__(self, main_info, status, event_type, restrictions):
+    def __init__(self, main_info, event_type, status=None, restrictions=None):
         self.__id = main_info['id']
         self.__name = main_info['name']
 
@@ -107,11 +107,11 @@ class Event:
         self.__closed = bool(new_closed)
 
     @property
-    def restriction(self):
+    def restrictions(self):
         return self.__restrictions
 
-    @restriction.setter
-    def restriction(self, new_restriction):
+    @restrictions.setter
+    def restrictions(self, new_restriction):
         self.__restrictions = json.dumps(new_restriction)
 
     def is_type(self, needed_type):
