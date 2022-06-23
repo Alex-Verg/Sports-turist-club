@@ -17,9 +17,27 @@ def insert_new_event(cursor, connection, current_user: User, new_event: Event):
             params = (new_event.name, current_user.id, new_event.event_type.id, new_event.description, new_event.event_date, new_event.location, new_event.price, new_event.restrictions)
             cursor.execute(new_role_query, params)
 
-            # TODO Add main organaizer to participants
+            event_query = """SELECT id FROM events WHERE name = %s"""
+            cursor.execute(event_query, (new_event.name, ))
+            new_event.id = cursor.fetchall()[0]['id']
 
-            # TODO Add event to history
+            add_organaizer_in_participant_query = """INSERT INTO participants(event, participant, is_helper) VALUES 
+                                                     (%s, %s, %s)"""
+            cursor.execute(add_organaizer_in_participant_query, (new_event.id, current_user.id, 1))
+
+            select_query = """SELECT * FROM events WHERE id = %s"""
+            cursor.execute(select_query, (new_event.id,))
+            previous_record = cursor.fetchall()[0]
+            add_in_history_query = """INSERT INTO history_events(name, main_organaizer, status, type, description, 
+                                                    event_date, location, price, changed_by, date_create, restrictions) VALUES 
+                                                    (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                        """
+            params = (previous_record['name'], previous_record['main_organaizer'], previous_record['status'],
+                      previous_record['type'], previous_record['description'], previous_record['event_date'],
+                      previous_record['location'], previous_record['price'], current_user.id,
+                      previous_record['date_create'],
+                      previous_record['restrictions'])
+            cursor.execute(add_in_history_query, params)
 
             connection.commit()
     except Error as err:

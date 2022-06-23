@@ -85,7 +85,8 @@ def update_user(cursor, connection, current_user: User, update_user: User, new_r
             cursor.execute(new_role_query, (update_user.id, new_role.id))
             update_user.roles.append(new_role)
 
-            # TODO Chande date_modified in users
+            date_modified_query = """UPDATE users SET date_modified = current_timestamp() WHERE id = %s"""
+            cursor.execute(date_modified_query, (current_user.id, ))
 
             connection.commit()
     except Error as err:
