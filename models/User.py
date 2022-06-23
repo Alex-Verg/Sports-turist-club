@@ -1,4 +1,5 @@
 import datetime
+from models.Role import Role
 
 
 class User:
@@ -92,8 +93,15 @@ class User:
     def roles(self, new_roles):
         self.__roles = new_roles
 
-    def has_role(self, needed_role):
-        filter_role = [role for role in self.roles if role.name == needed_role]
+    def has_role(self, needed_role: Role):
+        """
+            Check is user have needed role.
+        :param needed_role: Role type of needed role;
+        :return: True if user has needed role;
+                 False if user hasn't needed role.
+        """
+
+        filter_role = [role for role in self.roles if role == needed_role]
         return bool(filter_role)
 
     def view_users(self):

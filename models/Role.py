@@ -1,8 +1,8 @@
 class Role:
 
-    def __init__(self, id, name):
-        self.__id = id
-        self.__name = name
+    def __init__(self, main_info):
+        self.__id = main_info['id']
+        self.__name = main_info['name']
 
     @property
     def id(self):
@@ -22,3 +22,10 @@ class Role:
     @name.setter
     def name(self, new_name):
         self.__name = new_name
+
+    def __eq__(self, other):
+        if self.id != other.id:
+            return False
+        if self.name != other.name:
+            return False
+        return True

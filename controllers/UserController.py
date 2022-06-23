@@ -3,12 +3,9 @@ import os
 import hashlib
 from models.User import User
 from models.Role import Role
-
-
-class ErrorAuthentication(Exception):
-
-    def __init__(self):
-        super().__init__("You haven't access to this account!")
+from exceptions.ErrorAuthentication import ErrorAuthentication
+from exceptions.ErrorUserPermissions import ErrorUserPermissions
+from controllers import RoleController
 
 
 def hash_password(salt, password):
@@ -33,16 +30,16 @@ def insert_new_user(cursor, connection, login, password, first_name, last_name, 
 
         select_query = "SELECT id FROM users WHERE users.login = %s"
         cursor.execute(select_query, (login,))
-        user_id = cursor.fetchall()[0][0]
+        user_id = cursor.fetchall()[0]['id']
 
         select_query = "SELECT id FROM role WHERE name = 'User'"
         cursor.execute(select_query)
-        role_id = cursor.fetchall()[0][0]
+        role_id = cursor.fetchall()[0]['id']
 
         insert_query = "INSERT INTO user_role (user, role) VALUES (%s, %s)"
         cursor.execute(insert_query, (user_id, role_id))
         connection.commit()
-        return False
+        return True
 
     except Error as err:
         connection.rollback()
@@ -61,18 +58,35 @@ def authentication(cursor, connection, login, password):
             cursor.execute(select_login, (login,))
             record = cursor.fetchall()[0]
             user_id = record['id']
-            select_user_roles = """SELECT role, name 
+            select_user_roles = """SELECT id, name 
                                    FROM user_role AS u
                                    INNER JOIN role AS r
                                    ON u.role = r.id
                                    WHERE u.user = %s"""
             cursor.execute(select_user_roles, (user_id,))
             roles = cursor.fetchall()
-            roles = [Role(i['role'], i['name']) for i in roles]
+            roles = [Role(i) for i in roles]
             return User(record, roles)
         else:
             raise ErrorAuthentication
     except Error as err:
         return err
     except ErrorAuthentication as err:
+        return err
+
+
+def update_user(cursor, connection, current_user: User, update_user: User, new_role: Role):
+    try:
+        permission_role = RoleController.role_from_base(cursor, 'Admin')
+        if not current_user.has_role(permission_role):
+            raise ErrorUserPermissions
+        else:
+            new_role_query = """INSERT INTO user_role(user, role) VALUES (%s, %s)"""
+            cursor.execute(new_role_query, (update_user.id, new_role.id))
+            connection.commit()
+
+    except Error as err:
+        connection.rollback()
+        return err
+    except ErrorUserPermissions as err:
         return err
