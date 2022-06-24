@@ -7,6 +7,7 @@ import re
 import time
 from models.User import User
 from controllers import UserController
+from controllers import RoleController
 
 
 def connect_to_db():
@@ -140,7 +141,67 @@ def sign_up(cursor, connection):
 
 
 def role_menu(cursor, connection, current_user: User):
-    pass
+    while True:
+        print("Enter number what you want to do:")
+        user_role = RoleController.role_from_base(cursor, 'User')
+        if current_user.has_role(user_role):
+            print("1. View upcoming event")
+            print("2. Take part in event")
+
+        club_member_role = RoleController.role_from_base(cursor, 'Club member')
+        if current_user.has_role(club_member_role):
+            if not current_user.has_role(user_role):
+                print("1. View upcoming event")
+            print("3. Create new event")
+            print("4. Help organaized event")
+
+        manager_role = RoleController.role_from_base(cursor, 'Manager')
+        if current_user.has_role(manager_role):
+            print("5. Upgrade event")
+
+        admin_role = RoleController.role_from_base(cursor, 'Admin')
+        if current_user.has_role(admin_role):
+            print("6. Give new role for user")
+        print("7. Log out")
+
+        while True:
+            choice = input()
+            try:
+                choice = int(choice)
+            except ValueError:
+                print("You enter not number! Please enter correct item:")
+                continue
+            if choice == 1 and (current_user.has_role(user_role) or current_user.has_role(club_member_role)):
+                clean()
+                upcoming_events(cursor, connection, current_user)
+                break
+            if choice == 2 and current_user.has_role(user_role):
+                clean()
+                select_event_and_take_part(cursor, connection, current_user)
+                break
+            if choice == 3 and current_user.has_role(club_member_role):
+                clean()
+                create_event(cursor, connection, current_user)
+                break
+            if choice == 4 and current_user.has_role(club_member_role):
+                clean()
+                help_organaized_event(cursor, connection, current_user)
+                break
+            if choice == 5 and current_user.has_role(manager_role):
+                clean()
+                view_and_update_event(cursor, connection, current_user)
+                break
+            if choice == 6 and current_user.has_role(club_member_role):
+                clean()
+                view_and_update_user(cursor, connection, current_user)
+                break
+            if choice == 7:
+                clean()
+                print("You successful log out")
+                time.sleep(2)
+                return None
+            else:
+                print("You enter not correct number! Please enter correct item:")
 
 
 def view_and_update_user(cursor, connection, current_user: User):
