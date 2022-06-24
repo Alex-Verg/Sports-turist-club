@@ -1,7 +1,7 @@
 import datetime
 import os
 import json
-from controllers.Interface import Interface
+from controllers import Interface
 from controllers import UserController
 from controllers import EventController
 from controllers import EventTypeController
@@ -14,6 +14,7 @@ from models.Status import Status
 
 if __name__ == "__main__":
     cursor, connection = Interface.connect_to_db()
+    Interface.first_menu(cursor, connection)
     # print(UserController.insert_new_user(cursor, connection, 'MainAdmin', '12345',
     #                 'Main', 'Admin', '2022-06-23', 'mainadmin@gmail.com', '+380000000000'))
     current_user = UserController.authentication(cursor, connection, 'Sasha10', 'alex2002')
