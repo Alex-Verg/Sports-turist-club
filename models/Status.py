@@ -1,8 +1,8 @@
 class Status:
 
-    def __init__(self, main_info, next_statuses):
+    def __init__(self, main_info, next_statuses=None):
         self.__id = main_info['id']
-        self.__name = main_info['name']
+        self.__name = main_info['status']
         self.__closed = main_info['closed']
         self.__next_statuses = next_statuses
 

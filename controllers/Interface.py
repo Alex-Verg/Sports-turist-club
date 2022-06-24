@@ -7,9 +7,11 @@ import re
 import time
 from models.User import User
 from models.Role import Role
+from models.Status import Status
 from controllers import UserController
 from controllers import RoleController
 from controllers import EventController
+from controllers import StatusController
 
 
 def connect_to_db():
@@ -147,24 +149,21 @@ def role_menu(cursor, connection, current_user: User):
         print("Enter number what you want to do:")
         user_role = RoleController.role_from_base(cursor, 'User')
         if current_user.has_role(user_role):
-            print("1. View upcoming event")
-            print("2. Take part in event")
+            print("1. Take part in event")
 
         club_member_role = RoleController.role_from_base(cursor, 'Club member')
         if current_user.has_role(club_member_role):
-            if not current_user.has_role(user_role):
-                print("1. View upcoming event")
-            print("3. Create new event")
-            print("4. Help organaized event")
+            print("2. Create new event")
+            print("3. Help organaized event")
 
         manager_role = RoleController.role_from_base(cursor, 'Manager')
         if current_user.has_role(manager_role):
-            print("5. Upgrade event")
+            print("4. Upgrade event")
 
         admin_role = RoleController.role_from_base(cursor, 'Admin')
         if current_user.has_role(admin_role):
-            print("6. Give new role for user")
-        print("7. Log out")
+            print("5. Give new role for user")
+        print("6. Log out")
 
         while True:
             choice = input()
@@ -173,30 +172,27 @@ def role_menu(cursor, connection, current_user: User):
             except ValueError:
                 print("You enter not number! Please enter correct item:")
                 continue
-            if choice == 1 and (current_user.has_role(user_role) or current_user.has_role(club_member_role)):
-                clean()
-                break
-            if choice == 2 and current_user.has_role(user_role):
+            if choice == 1 and current_user.has_role(user_role):
                 clean()
                 select_event_and_take_part(cursor, connection, current_user)
                 break
-            if choice == 3 and current_user.has_role(club_member_role):
+            if choice == 2 and current_user.has_role(club_member_role):
                 clean()
                 create_event(cursor, connection, current_user)
                 break
-            if choice == 4 and current_user.has_role(club_member_role):
+            if choice == 3 and current_user.has_role(club_member_role):
                 clean()
                 help_organaized_event(cursor, connection, current_user)
                 break
-            if choice == 5 and current_user.has_role(manager_role):
+            if choice == 4 and current_user.has_role(manager_role):
                 clean()
                 view_and_update_event(cursor, connection, current_user)
                 break
-            if choice == 6 and current_user.has_role(club_member_role):
+            if choice == 5 and current_user.has_role(club_member_role):
                 clean()
                 view_and_update_user(cursor, connection, current_user)
                 break
-            if choice == 7:
+            if choice == 6:
                 clean()
                 print("You successful log out")
                 time.sleep(2)
@@ -207,6 +203,10 @@ def role_menu(cursor, connection, current_user: User):
 
 def view_and_update_user(cursor, connection, current_user: User):
     result = UserController.get_user_list(cursor, connection, current_user)
+    if isinstance(result, list) and len(result) == 0:
+        print('There are not other users')
+        time.sleep(3)
+        clean()
     if isinstance(result, list):
         clean()
         print_list_of_dictionary(result, 'birth_date')
@@ -224,6 +224,7 @@ def view_and_update_user(cursor, connection, current_user: User):
             clean()
             print("You successful add role {0} to user {1}".format(new_role.name, needed_user['login']))
             time.sleep(2)
+            clean()
         except Exception as err:
             clean()
             print("Oops, what's wrong :(\n")
@@ -243,7 +244,11 @@ def view_and_update_user(cursor, connection, current_user: User):
 
 def select_event_and_take_part(cursor, connection, current_user: User):
     result = EventController.get_upcoming_events(cursor, connection, current_user)
-    if isinstance(result, list):
+    if isinstance(result, list) and len(result) == 0:
+        print('There are not upcoming events')
+        time.sleep(3)
+        clean()
+    elif isinstance(result, list):
         print("Upcoming events: ")
         print_list_of_dictionary(result, 'event_date')
         needed_event_id = input("Enter id event in what you want take a part: ")
@@ -277,7 +282,11 @@ def create_event(cursor, connection, current_user: User):
 
 def help_organaized_event(cursor, connection, current_user: User):
     result = EventController.get_upcoming_events(cursor, connection, current_user)
-    if isinstance(result, list):
+    if isinstance(result, list) and len(result) == 0:
+        print('There are not upcoming events')
+        time.sleep(3)
+        clean()
+    elif isinstance(result, list):
         print("Upcoming events: ")
         print_list_of_dictionary(result, 'event_date')
         needed_event_id = input("Enter id event what you want help organaize: ")
@@ -306,10 +315,49 @@ def help_organaized_event(cursor, connection, current_user: User):
 
 
 def view_and_update_event(cursor, connection, current_user: User):
-    pass
+    result = EventController.get_events_for_update(cursor, connection, current_user)
+    if isinstance(result, list) and len(result) == 0:
+        print('There are not events for update')
+        time.sleep(3)
+        clean()
+    elif isinstance(result, list):
+        print("Events for upgrade: ")
+        print_list_of_dictionary(result, 'event_date')
+        needed_event_id = input("Enter id event what you want upgrade: ")
+        try:
+            needed_event_id = int(needed_event_id)
+            needed_event = search_attributes_in_list_by_id(result, needed_event_id)
+            statuses = StatusController.get_status_list(cursor, connection, current_user, needed_event['status'])
+            print_list_of_dictionary(statuses)
+            needed_status_id = input("Enter id status what you want give to event: ")
+            needed_status_id = int(needed_status_id)
+            needed_status = search_attributes_in_list_by_id(statuses, needed_status_id)
+            new_status = Status(needed_status)
+            EventController.update_event_status(cursor, connection, current_user, needed_event_id, new_status)
+            clean()
+            print("You successful update status to {0} to event {1}".format(new_status.name, needed_event['name']))
+            time.sleep(2)
+            clean()
+        except Exception as err:
+            clean()
+            print("Oops, what's wrong :(\n")
+            print(err)
+            print("\nEnter anything to return to main menu.")
+            save_input("")
+            clean()
+        clean()
+    else:
+        clean()
+        print("Oops, what's wrong :(\n")
+        print(result)
+        print("\nEnter anything to return to main menu.")
+        save_input("")
+        clean()
 
 
 def print_list_of_dictionary(records, date_field=None):
+    if len(records) == 0:
+        return None
     names = records[0].keys()
     n = len(names)
     print(("{: <20}| "*n).format(*names))

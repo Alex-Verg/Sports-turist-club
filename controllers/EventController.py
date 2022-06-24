@@ -49,7 +49,7 @@ def insert_new_event(cursor, connection, current_user: User, new_event: Event):
         return err
 
 
-def update_event_status(cursor, connection, current_user: User, event: Event, next_status: Status):
+def update_event_status(cursor, connection, current_user: User, event_id, next_status: Status):
     try:
         permission_role = RoleController.role_from_base(cursor, 'Manager')
         if not current_user.has_role(permission_role):
@@ -57,7 +57,7 @@ def update_event_status(cursor, connection, current_user: User, event: Event, ne
         else:
             if next_status.name == 'Past':
                 date_event_query = """SELECT event_date FROM events WHERE id = %s"""
-                cursor.execute(date_event_query, (event.id,))
+                cursor.execute(date_event_query, (event_id,))
                 date_event = cursor.fetchall()[0]['event_date']
                 if date_event > datetime.datetime.now():
                     raise ErrorNotPastEvent
@@ -67,13 +67,11 @@ def update_event_status(cursor, connection, current_user: User, event: Event, ne
                                                   events.closed = %s,
                                                   events.date_update = current_timestamp()
                                               WHERE events.id = %s"""
-            params = (next_status.id, next_status.closed, event.id)
+            params = (next_status.id, next_status.closed, event_id)
             cursor.execute(update_event_query, params)
-            event.closed = next_status.closed
-            event.status = next_status
 
             select_query = """SELECT * FROM events WHERE id = %s"""
-            cursor.execute(select_query, (event.id,))
+            cursor.execute(select_query, (event_id,))
             previous_record = cursor.fetchall()[0]
             add_in_history_query = """INSERT INTO history_events(name, main_organaizer, status, type, description, 
                                                         event_date, location, price, changed_by, date_create, restrictions) VALUES 
