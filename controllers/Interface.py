@@ -86,7 +86,57 @@ def log_in(cursor, connection):
 
 
 def sign_up(cursor, connection):
-    pass
+    login_pattern = re.compile("^\w+$")
+    login = input("Create your login (only letters, digits and _): ")
+    while not (login_pattern.match(login)):
+        login = input("Please, enter correct login: ")
+
+    password1 = save_input("Create your password: ")
+    password2 = save_input("Input same password: ")
+    while password1 != password2:
+        print("Please, enter equal password two times!")
+        password1 = save_input("Create your password: ")
+        password2 = save_input("Input same password: ")
+
+    first_name_pattern = re.compile("^\w+\s?\w+$")
+    first_name = input("Enter your first name: ")
+    while not (first_name_pattern.match(first_name)):
+        first_name = input("Please, enter correct first name: ")
+
+    last_name_pattern = re.compile("^\w+\-?\w+$")
+    last_name = input("Enter your last name: ")
+    while not (last_name_pattern.match(last_name)):
+        last_name = input("Please, enter correct last name: ")
+
+    birth_date = input("Enter your birth_date in format yyyy-mm-dd: ")
+    while not is_correct_date(birth_date, 'birth'):
+        birth_date = input("Please, enter your birth_date in correct format yyyy-mm-dd: ")
+
+    email_pattern = re.compile("^\w+\@[a-zA-Z]+[\.[a-zA-Z]+]?[a-zA-Z]$")
+    email = input("Enter your email: ")
+    while not (email_pattern.match(email)):
+        last_name = input("Please, enter correct email: ")
+
+    phone_pattern = re.compile("^\+\d{1,3}\d{9}$")
+    phone = input("Enter your phone number: ")
+    while not (phone_pattern.match(phone)):
+        phone = input("Please, enter correct phone number+: ")
+
+    result = UserController.insert_new_user(cursor, connection, login, password1, first_name, last_name, birth_date, email, phone)
+    if isinstance(result, bool):
+        clean()
+        print("You successful create new account!")
+        time.sleep(2)
+        clean()
+        current_user = UserController.authentication(cursor, connection, login, password1)
+        role_menu(cursor, connection, current_user)
+    else:
+        clean()
+        print("Oops, what's wrong :(\n")
+        print(result)
+        print("\nEnter anything to return to main menu.")
+        save_input("")
+        clean()
 
 
 def role_menu(cursor, connection, current_user: User):
@@ -131,3 +181,7 @@ def save_input(message):
         os.system("stty echo")
 
     return password
+
+
+def is_correct_date(date, date_type):
+    return True
