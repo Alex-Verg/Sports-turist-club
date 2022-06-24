@@ -16,7 +16,7 @@ if __name__ == "__main__":
     cursor, connection = Interface.connect_to_db()
     # print(UserController.insert_new_user(cursor, connection, 'MainAdmin', '12345',
     #                 'Main', 'Admin', '2022-06-23', 'mainadmin@gmail.com', '+380000000000'))
-    current_user = UserController.authentication(cursor, connection, 'Sasha10', 'alex2002')
+    current_user = UserController.authentication(cursor, connection, 'MainAdmin', '12345')
     # up_user = UserController.authentication(cursor, connection, 'Sasha10', 'alex2002')
 
     new_status = Status({
@@ -41,7 +41,7 @@ if __name__ == "__main__":
     }
     new_event = Event(main_info, EventType({"id": 1, "name": 'Hiking'}))
     # answ = UserController.update_user(cursor, connection, current_user, current_user, Role({'id': 2, 'name': 'Club member'}))
-    answ = EventController.update_event_status(cursor, connection, current_user, new_event, new_status)
+    answ = UserController.help_organaize_event(cursor, connection, current_user, new_event)
     if isinstance(answ, Exception):
         print(answ)
     elif isinstance(answ, list):

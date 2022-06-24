@@ -51,7 +51,10 @@ def authentication(cursor, connection, login, password):
     try:
         select_login = "SELECT password, enabled FROM users WHERE users.login = %s"
         cursor.execute(select_login, (login,))
-        base_password, enabled = cursor.fetchall()[0].values()
+        rec = cursor.fetchall()
+        if len(rec) == 0:
+            raise ErrorAuthentication
+        base_password, enabled = rec[0].values()
         salt = base_password[:64]
         salt = bytes.fromhex(salt)
         if (base_password == salt.hex() + hash_password(salt, password)) and enabled:
@@ -98,13 +101,52 @@ def update_user(cursor, connection, current_user: User, update_user: User, new_r
 
 
 def help_organaize_event(cursor, connection, current_user: User, event: Event):
-    # TODO def help_organaize_event
-    pass
+    try:
+        permission_role = RoleController.role_from_base(cursor, 'Club member')
+        if not current_user.has_role(permission_role):
+            raise ErrorUserPermissions
+        else:
+            check_query = """SELECT event, participant FROM participants WHERE event = %s AND participant = %s"""
+            cursor.execute(check_query, (event.id, current_user.id))
+            rec = cursor.fetchall()
+            if len(rec) == 1:
+                become_helper_query = """UPDATE participants
+                                            SET 
+                                                is_helper = 1
+                                            WHERE event = %s AND participant = %s"""
+                cursor.execute(become_helper_query, (event.id, current_user.id))
+
+                connection.commit()
+            else:
+                help_organaize_query = """INSERT INTO participants(event, participant, is_helper) VALUES 
+                                                         (%s, %s, %s)"""
+                cursor.execute(help_organaize_query, (event.id, current_user.id, 1))
+
+                connection.commit()
+    except Error as err:
+        connection.rollback()
+        return err
+    except ErrorUserPermissions as err:
+        return err
 
 
 def take_part_in_event(cursor, connection, current_user: User, event: Event):
-    # TODO def take_part_in_event
-    pass
+    try:
+        permission_role = RoleController.role_from_base(cursor, 'Club member')
+        if not current_user.has_role(permission_role):
+            raise ErrorUserPermissions
+        else:
+            take_part_query = """INSERT INTO participants (event, participant, is_helper) VALUES 
+                                    (%s, %s, %s)"""
+            params = (event.id, current_user.id, 0)
+            cursor.execute(take_part_query, params)
+
+            connection.commit()
+    except Error as err:
+        connection.rollback()
+        return err
+    except ErrorUserPermissions as err:
+        return err
 
 
 def view_event_participant(cursor, connection, current_user: User, event: Event):
@@ -113,5 +155,16 @@ def view_event_participant(cursor, connection, current_user: User, event: Event)
 
 
 def get_user_list(cursor, connection, current_user: User):
-    # TODO def get_user_list
-    pass
+    try:
+        permission_role = RoleController.role_from_base(cursor, 'Admin')
+        if not current_user.has_role(permission_role):
+            raise ErrorUserPermissions
+        else:
+            select_query = """SELECT id, login, first_name, last_name, birth_date, email, phone, enabled
+                                FROM users"""
+            cursor.execute(select_query)
+            records = cursor.fetchall()
+
+            return records
+    except (Error, ErrorUserPermissions) as err:
+        return err

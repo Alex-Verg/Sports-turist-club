@@ -14,7 +14,7 @@ def insert_new_event(cursor, connection, current_user: User, new_event: Event):
         if not current_user.has_role(permission_role):
             raise ErrorUserPermissions
         else:
-            new_role_query = """INSERT INTO events(name, main_organaizer, type, description, event_date, location, price, restrictions) VALUES 
+            new_event_query = """INSERT INTO events(name, main_organaizer, type, description, event_date, location, price, restrictions) VALUES 
                                 (%s, %s, %s, %s, %s, %s, %s, %s)"""
             params = (new_event.name, current_user.id, new_event.event_type.id, new_event.description, new_event.event_date, new_event.location, new_event.price, new_event.restrictions)
             cursor.execute(new_role_query, params)
