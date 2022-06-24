@@ -3,7 +3,10 @@ from mysql.connector import Error
 from configs import db_connection
 import os
 import getpass
+import re
+import time
 from models.User import User
+from controllers import UserController
 
 
 def connect_to_db():
@@ -30,6 +33,7 @@ def clean():
 
 
 def first_menu(cursor, connection):
+    clean()
     print("Hello! This is application with database of events in sport tourist club!")
     while True:
         print("Enter number what you want to do:")
@@ -44,13 +48,12 @@ def first_menu(cursor, connection):
                 print("You enter not number! Please enter correct item:")
                 continue
             if choice == 1:
-                current_user = log_in(cursor, connection)
                 clean()
+                log_in(cursor, connection)
                 break
             if choice == 2:
-                current_user = sign_up(cursor, connection)
-                role_menu(cursor, connection, current_user)
                 clean()
+                sign_up(cursor, connection)
                 break
             if choice == 3:
                 clean()
@@ -61,7 +64,25 @@ def first_menu(cursor, connection):
 
 
 def log_in(cursor, connection):
-    pass
+    pattern = re.compile("^\w+$")
+    login = input("Enter your login (only letters, digits and _): ")
+    while not (pattern.match(login)):
+        login = input("Please, enter correct login: ")
+    password = save_input("Enter your password: ")
+    current_user = UserController.authentication(cursor, connection, login, password)
+    if isinstance(current_user, User):
+        clean()
+        print("You successful log in in your account!")
+        time.sleep(2)
+        clean()
+        role_menu(cursor, connection, current_user)
+    else:
+        clean()
+        print("Oops, what's wrong :(\n")
+        print(current_user)
+        print("\nEnter anything to return to main menu.")
+        save_input("")
+        clean()
 
 
 def sign_up(cursor, connection):
@@ -100,11 +121,11 @@ def print_list_of_dictionary(cursor, connection, current_user: User):
     pass
 
 
-def save_input(cursor, connection):
+def save_input(message):
     if os.name == 'nt':
-        password = getpass.getpass(prompt="Input your password: ")
+        password = getpass.getpass(prompt=message)
     else:
-        print("Enter your password: ")
+        print(message)
         os.system("stty -echo")
         password = input()
         os.system("stty echo")
