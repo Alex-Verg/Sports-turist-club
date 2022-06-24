@@ -6,6 +6,7 @@ import getpass
 import re
 import time
 from models.User import User
+from models.Role import Role
 from controllers import UserController
 from controllers import RoleController
 
@@ -205,7 +206,39 @@ def role_menu(cursor, connection, current_user: User):
 
 
 def view_and_update_user(cursor, connection, current_user: User):
-    pass
+    result = UserController.get_user_list(cursor, connection, current_user)
+    if isinstance(result, list):
+        clean()
+        print_list_of_dictionary(result, 'birth_date')
+        needed_user_id = input("Enter id user for who you want give role: ")
+        roles = RoleController.get_role_list(cursor, connection, current_user)
+        print_list_of_dictionary(roles)
+        needed_role_id = input("Enter id role what you want give: ")
+        try:
+            needed_user_id = int(needed_user_id)
+            needed_role_id = int(needed_role_id)
+            needed_user = search_attributes_in_list_by_id(result, needed_user_id)
+            needed_role = search_attributes_in_list_by_id(roles, needed_role_id)
+            new_role = Role(needed_role)
+            UserController.update_user(cursor, connection, current_user, needed_user_id, new_role)
+            clean()
+            print("You successful add role {0} to user {1}".format(new_role.name, needed_user['login']))
+            time.sleep(2)
+        except Exception as err:
+            clean()
+            print("Oops, what's wrong :(\n")
+            print(err)
+            print("\nEnter anything to return to main menu.")
+            save_input("")
+            clean()
+        clean()
+    else:
+        clean()
+        print("Oops, what's wrong :(\n")
+        print(result)
+        print("\nEnter anything to return to main menu.")
+        save_input("")
+        clean()
 
 
 def upcoming_events(cursor, connection, current_user: User):
@@ -228,8 +261,22 @@ def view_and_update_event(cursor, connection, current_user: User):
     pass
 
 
-def print_list_of_dictionary(cursor, connection, current_user: User):
-    pass
+def print_list_of_dictionary(records, date_field=None):
+    names = records[0].keys()
+    n = len(names)
+    print(("{: <20}| "*n).format(*names))
+    print("-"*22*n)
+    for i in records:
+        if date_field is not None:
+            i[date_field] = i[date_field].strftime("%m/%d/%Y, %H:%M:%S")
+        rec = i.values()
+        print(("{: <20}| "*n).format(*rec))
+
+
+def search_attributes_in_list_by_id(records, need_id):
+    for i in records:
+        if i['id'] == need_id:
+            return i
 
 
 def save_input(message):

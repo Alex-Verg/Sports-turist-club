@@ -14,6 +14,8 @@ from models.Status import Status
 
 if __name__ == "__main__":
     cursor, connection = Interface.connect_to_db()
+    # print("{: <20}".format(datetime.datetime(2023, 8, 1, 0, 0, 0, 0)))
+    # Interface.print_list_of_dictionary([{1: 2, 4: 1}, {1: 3, 5: 4}, {1: 5, 6: 6}])
     Interface.first_menu(cursor, connection)
     # print(UserController.insert_new_user(cursor, connection, 'MainAdmin', '12345',
     #                 'Main', 'Admin', '2022-06-23', 'mainadmin@gmail.com', '+380000000000'))

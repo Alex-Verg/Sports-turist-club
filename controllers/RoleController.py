@@ -18,7 +18,7 @@ def get_role_list(cursor, connection, current_user: User):
         if not current_user.has_role(permission_role):
             raise ErrorUserPermissions
         else:
-            select_query = """SELECT * FROM role"""
+            select_query = """SELECT * FROM role ORDER BY id"""
             cursor.execute(select_query)
             records = cursor.fetchall()
 

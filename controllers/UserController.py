@@ -79,15 +79,14 @@ def authentication(cursor, connection, login, password):
         return err
 
 
-def update_user(cursor, connection, current_user: User, update_user: User, new_role: Role):
+def update_user(cursor, connection, current_user: User, update_user_id, new_role: Role):
     try:
         permission_role = RoleController.role_from_base(cursor, 'Admin')
         if not current_user.has_role(permission_role):
             raise ErrorUserPermissions
         else:
             new_role_query = """INSERT INTO user_role(user, role) VALUES (%s, %s)"""
-            cursor.execute(new_role_query, (update_user.id, new_role.id))
-            update_user.roles.append(new_role)
+            cursor.execute(new_role_query, (update_user_id, new_role.id))
 
             date_modified_query = """UPDATE users SET date_modified = current_timestamp() WHERE id = %s"""
             cursor.execute(date_modified_query, (current_user.id, ))
@@ -183,8 +182,10 @@ def get_user_list(cursor, connection, current_user: User):
             raise ErrorUserPermissions
         else:
             select_query = """SELECT id, login, first_name, last_name, birth_date, email, phone, enabled
-                                FROM users"""
-            cursor.execute(select_query)
+                                FROM users
+                                WHERE id != %s
+                                ORDER BY id"""
+            cursor.execute(select_query, (current_user.id, ))
             records = cursor.fetchall()
 
             return records

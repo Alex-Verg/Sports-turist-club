@@ -19,7 +19,7 @@ def get_event_type_list(cursor, connection, current_user: User):
         if not current_user.has_role(permission_role):
             raise ErrorUserPermissions
         else:
-            select_query = """SELECT * FROM type"""
+            select_query = """SELECT * FROM type ORDER BY id"""
             cursor.execute(select_query)
             records = cursor.fetchall()
 
