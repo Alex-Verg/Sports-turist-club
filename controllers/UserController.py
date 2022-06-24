@@ -6,6 +6,7 @@ from models.Role import Role
 from models.Event import Event
 from exceptions.ErrorAuthentication import ErrorAuthentication
 from exceptions.ErrorUserPermissions import ErrorUserPermissions
+from exceptions.ErrorAlreadyRegistrated import ErrorAlreadyRegistrated
 from controllers import RoleController
 
 
@@ -99,27 +100,29 @@ def update_user(cursor, connection, current_user: User, update_user_id, new_role
         return err
 
 
-def help_organaize_event(cursor, connection, current_user: User, event: Event):
+def help_organaize_event(cursor, connection, current_user: User, event_id):
     try:
         permission_role = RoleController.role_from_base(cursor, 'Club member')
         if not current_user.has_role(permission_role):
             raise ErrorUserPermissions
         else:
-            check_query = """SELECT event, participant FROM participants WHERE event = %s AND participant = %s"""
-            cursor.execute(check_query, (event.id, current_user.id))
+            check_query = """SELECT event, participant, is_helper FROM participants WHERE event = %s AND participant = %s"""
+            cursor.execute(check_query, (event_id, current_user.id))
             rec = cursor.fetchall()
-            if len(rec) == 1:
+            if (len(rec) == 1) and (rec[0]['is_helper'] == 1):
+                raise ErrorAlreadyRegistrated('You already registrated to help!')
+            elif len(rec) == 1:
                 become_helper_query = """UPDATE participants
                                             SET 
                                                 is_helper = 1
                                             WHERE event = %s AND participant = %s"""
-                cursor.execute(become_helper_query, (event.id, current_user.id))
+                cursor.execute(become_helper_query, (event_id, current_user.id))
 
                 connection.commit()
             else:
                 help_organaize_query = """INSERT INTO participants(event, participant, is_helper) VALUES 
                                                          (%s, %s, %s)"""
-                cursor.execute(help_organaize_query, (event.id, current_user.id, 1))
+                cursor.execute(help_organaize_query, (event_id, current_user.id, 1))
 
                 connection.commit()
     except Error as err:
@@ -135,10 +138,16 @@ def take_part_in_event(cursor, connection, current_user: User, event_id):
         if not current_user.has_role(permission_role):
             raise ErrorUserPermissions
         else:
-            take_part_query = """INSERT INTO participants (event, participant, is_helper) VALUES 
-                                    (%s, %s, %s)"""
-            params = (event_id, current_user.id, 0)
-            cursor.execute(take_part_query, params)
+            check_query = """SELECT event, participant FROM participants WHERE event = %s AND participant = %s"""
+            cursor.execute(check_query, (event_id, current_user.id))
+            rec = cursor.fetchall()
+            if len(rec) == 1:
+                raise ErrorAlreadyRegistrated
+            else:
+                take_part_query = """INSERT INTO participants (event, participant, is_helper) VALUES 
+                                        (%s, %s, %s)"""
+                params = (event_id, current_user.id, 0)
+                cursor.execute(take_part_query, params)
 
             connection.commit()
     except Error as err:

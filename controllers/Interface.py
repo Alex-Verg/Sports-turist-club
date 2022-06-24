@@ -175,7 +175,6 @@ def role_menu(cursor, connection, current_user: User):
                 continue
             if choice == 1 and (current_user.has_role(user_role) or current_user.has_role(club_member_role)):
                 clean()
-                upcoming_events(cursor, connection, current_user)
                 break
             if choice == 2 and current_user.has_role(user_role):
                 clean()
@@ -277,7 +276,33 @@ def create_event(cursor, connection, current_user: User):
 
 
 def help_organaized_event(cursor, connection, current_user: User):
-    pass
+    result = EventController.get_upcoming_events(cursor, connection, current_user)
+    if isinstance(result, list):
+        print("Upcoming events: ")
+        print_list_of_dictionary(result, 'event_date')
+        needed_event_id = input("Enter id event what you want help organaize: ")
+        try:
+            needed_event_id = int(needed_event_id)
+            UserController.help_organaize_event(cursor, connection, current_user, needed_event_id)
+            clean()
+            needed_event = search_attributes_in_list_by_id(result, needed_event_id)
+            print("You successful registration to help organaize event {0}".format(needed_event['name']))
+            time.sleep(5)
+        except Exception as err:
+            clean()
+            print("Oops, what's wrong :(\n")
+            print(err)
+            print("\nEnter anything to return to main menu.")
+            save_input("")
+            clean()
+        clean()
+    else:
+        clean()
+        print("Oops, what's wrong :(\n")
+        print(result)
+        print("\nEnter anything to return to main menu.")
+        save_input("")
+        clean()
 
 
 def view_and_update_event(cursor, connection, current_user: User):
