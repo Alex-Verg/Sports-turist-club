@@ -98,16 +98,20 @@ def update_user(cursor, connection, current_user: User, update_user: User, new_r
 
 
 def help_organaize_event(cursor, connection, current_user: User, event: Event):
+    # TODO def help_organaize_event
     pass
 
 
 def take_part_in_event(cursor, connection, current_user: User, event: Event):
+    # TODO def take_part_in_event
     pass
 
 
 def view_event_participant(cursor, connection, current_user: User, event: Event):
+    # TODO def view_event_participant
     pass
 
 
 def get_user_list(cursor, connection, current_user: User):
+    # TODO def get_user_list
     pass

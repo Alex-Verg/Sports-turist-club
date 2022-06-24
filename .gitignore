@@ -3,3 +3,4 @@ venv/
 configs/
 controllers/__pycache__/
 models/__pycache__/
+exceptions/__pycache__/
