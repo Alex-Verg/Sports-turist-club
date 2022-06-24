@@ -17,7 +17,7 @@ def insert_new_event(cursor, connection, current_user: User, new_event: Event):
             new_event_query = """INSERT INTO events(name, main_organaizer, type, description, event_date, location, price, restrictions) VALUES 
                                 (%s, %s, %s, %s, %s, %s, %s, %s)"""
             params = (new_event.name, current_user.id, new_event.event_type.id, new_event.description, new_event.event_date, new_event.location, new_event.price, new_event.restrictions)
-            cursor.execute(new_role_query, params)
+            cursor.execute(new_event_query, params)
 
             event_query = """SELECT id FROM events WHERE name = %s"""
             cursor.execute(event_query, (new_event.name, ))
@@ -42,6 +42,8 @@ def insert_new_event(cursor, connection, current_user: User, new_event: Event):
             cursor.execute(add_in_history_query, params)
 
             connection.commit()
+
+            return True
     except Error as err:
         connection.rollback()
         return err

@@ -1,3 +1,4 @@
+import json
 import mysql.connector
 from mysql.connector import Error
 from configs import db_connection
@@ -8,10 +9,12 @@ import time
 from models.User import User
 from models.Role import Role
 from models.Status import Status
+from models.Event import Event
 from controllers import UserController
 from controllers import RoleController
 from controllers import EventController
 from controllers import StatusController
+from controllers import EventTypeController
 
 
 def connect_to_db():
@@ -277,7 +280,80 @@ def select_event_and_take_part(cursor, connection, current_user: User):
 
 
 def create_event(cursor, connection, current_user: User):
-    pass
+    name_pattern = re.compile("^\w+[\s\w+]*\w$")
+    name = input("Enter name of your event: ")
+    while not (name_pattern.match(name)):
+        name = input("Enter correct name of your event: ")
+
+    description = input("Enter short description about your event: ")
+
+    event_date = input("Enter event date in format yyyy-mm-dd: ")
+    while not is_correct_date(event_date, 'event'):
+        event_date = input("Please, enter event date in correct format yyyy-mm-dd: ")
+
+    location = input("Enter location of your event: ")
+
+    price = input("Enter price of participation in your event: ")
+    try:
+        price = int(price)
+    except ValueError:
+        pass
+    while not isinstance(price, (int, float)):
+        price = input("Enter correct price of participation in your event: ")
+        try:
+            price = int(price)
+        except ValueError:
+            pass
+
+    restrictions = {}
+    flag = input("If you have restrictions to your event, enter 1, else enter something other: ")
+    while flag == '1':
+        key = input('Enter name of your restriction: ')
+        value = input('Enter details about your restriction: ')
+        flag = input("If you have another restriction to your event, enter 1, else enter something other: ")
+
+    restrictions = json.dumps(restrictions)
+
+    print('Event types:')
+    types = EventTypeController.get_event_type_list(cursor, connection, current_user)
+    print_list_of_dictionary(types)
+    needed_type_id = input("Enter id type what has your event: ")
+    needed_type = None
+    while needed_type is None:
+        try:
+            needed_type_id = int(needed_type_id)
+        except ValueError:
+            pass
+        while not isinstance(needed_type_id, int):
+            needed_type_id = input("Enter correct id type what has your event: ")
+        needed_type = search_attributes_in_list_by_id(types, needed_type_id)
+
+    event_type = EventTypeController.event_type_from_base(cursor, needed_type['name'])
+
+    main_info = {
+        'id': None,
+        'name': name,
+        'description': description,
+        'event_date': event_date,
+        'location': location,
+        'price': round(price, 2),
+        'closed': 0
+    }
+
+    new_event = Event(main_info, event_type, restrictions=restrictions)
+    result = EventController.insert_new_event(cursor, connection, current_user, new_event)
+    if isinstance(result, bool):
+        clean()
+        print("You successful create new event!")
+        time.sleep(2)
+        clean()
+    else:
+        clean()
+        print("Oops, what's wrong :(\n")
+        print(result)
+        print("\nEnter anything to return to main menu.")
+        save_input("")
+        clean()
 
 
 def help_organaized_event(cursor, connection, current_user: User):
