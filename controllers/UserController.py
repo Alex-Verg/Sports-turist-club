@@ -150,8 +150,30 @@ def take_part_in_event(cursor, connection, current_user: User, event: Event):
 
 
 def view_event_participant(cursor, connection, current_user: User, event: Event):
-    # TODO def view_event_participant
-    pass
+    try:
+        permission_role = RoleController.role_from_base(cursor, 'Club member')
+        if not current_user.has_role(permission_role):
+            raise ErrorUserPermissions
+        else:
+            main_organaizer_query = """SELECT main_organaizer FROM events WHERE id = %s"""
+            cursor.execute(main_organaizer_query, (event.id, ))
+            main_organaizer_id = cursor.fetchall()[0]['main_organaizer']
+            if main_organaizer_id == current_user.id:
+                participant_query = """SELECT u.login, u.first_name, u.last_name, u.birth_date, u.phone, p.is_helper
+                                        FROM participants AS p
+                                        LEFT JOIN users AS u
+                                        ON p.participant = u.id
+                                        WHERE p.event = %s AND u.id != %s"""
+                cursor.execute(participant_query, (event.id, current_user.id))
+                rec = cursor.fetchall()
+
+                return rec
+            else:
+                raise ErrorUserPermissions
+    except Error as err:
+        return err
+    except ErrorUserPermissions as err:
+        return err
 
 
 def get_user_list(cursor, connection, current_user: User):
