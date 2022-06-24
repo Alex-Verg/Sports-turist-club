@@ -129,7 +129,7 @@ def help_organaize_event(cursor, connection, current_user: User, event: Event):
         return err
 
 
-def take_part_in_event(cursor, connection, current_user: User, event: Event):
+def take_part_in_event(cursor, connection, current_user: User, event_id):
     try:
         permission_role = RoleController.role_from_base(cursor, 'Club member')
         if not current_user.has_role(permission_role):
@@ -137,7 +137,7 @@ def take_part_in_event(cursor, connection, current_user: User, event: Event):
         else:
             take_part_query = """INSERT INTO participants (event, participant, is_helper) VALUES 
                                     (%s, %s, %s)"""
-            params = (event.id, current_user.id, 0)
+            params = (event_id, current_user.id, 0)
             cursor.execute(take_part_query, params)
 
             connection.commit()

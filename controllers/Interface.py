@@ -9,6 +9,7 @@ from models.User import User
 from models.Role import Role
 from controllers import UserController
 from controllers import RoleController
+from controllers import EventController
 
 
 def connect_to_db():
@@ -241,12 +242,34 @@ def view_and_update_user(cursor, connection, current_user: User):
         clean()
 
 
-def upcoming_events(cursor, connection, current_user: User):
-    pass
-
-
 def select_event_and_take_part(cursor, connection, current_user: User):
-    pass
+    result = EventController.get_upcoming_events(cursor, connection, current_user)
+    if isinstance(result, list):
+        print("Upcoming events: ")
+        print_list_of_dictionary(result, 'event_date')
+        needed_event_id = input("Enter id event in what you want take a part: ")
+        try:
+            needed_event_id = int(needed_event_id)
+            UserController.take_part_in_event(cursor, connection, current_user, needed_event_id)
+            clean()
+            needed_event = search_attributes_in_list_by_id(result, needed_event_id)
+            print("You successful registration to event {0}".format(needed_event['name']))
+            time.sleep(5)
+        except Exception as err:
+            clean()
+            print("Oops, what's wrong :(\n")
+            print(err)
+            print("\nEnter anything to return to main menu.")
+            save_input("")
+            clean()
+        clean()
+    else:
+        clean()
+        print("Oops, what's wrong :(\n")
+        print(result)
+        print("\nEnter anything to return to main menu.")
+        save_input("")
+        clean()
 
 
 def create_event(cursor, connection, current_user: User):
@@ -267,6 +290,8 @@ def print_list_of_dictionary(records, date_field=None):
     print(("{: <20}| "*n).format(*names))
     print("-"*22*n)
     for i in records:
+        if 'restrictions' in names:
+            i['restrictions'] = str(i['restrictions'] or '')
         if date_field is not None:
             i[date_field] = i[date_field].strftime("%m/%d/%Y, %H:%M:%S")
         rec = i.values()

@@ -135,7 +135,8 @@ def get_upcoming_events(cursor, connection, current_user: User):
                                 ON e.main_organaizer = u.id
                                 LEFT JOIN type AS t
                                 ON e.type = t.id
-                                WHERE e.status = (SELECT id from status WHERE status = 'Upcoming')"""
+                                WHERE e.status = (SELECT id from status WHERE status = 'Upcoming')
+                                ORDER BY e.id"""
             cursor.execute(select_query)
             records = cursor.fetchall()
 
