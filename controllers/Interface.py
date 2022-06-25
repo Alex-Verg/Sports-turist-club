@@ -100,9 +100,10 @@ def sign_up(cursor, connection):
     while not (login_pattern.match(login)):
         login = input("Please, enter correct login: ")
 
+    password_pattern = re.compile("^\S+$")
     password1 = save_input("Create your password: ")
     password2 = save_input("Input same password: ")
-    while password1 != password2:
+    while password1 != password2 or (not password_pattern.match(password1)):
         print("Please, enter equal password two times!")
         password1 = save_input("Create your password: ")
         password2 = save_input("Input same password: ")
@@ -159,15 +160,16 @@ def role_menu(cursor, connection, current_user: User):
         if current_user.has_role(club_member_role):
             print("2. Create new event")
             print("3. Help organaized event")
+            print("4. View participant of my event")
 
         manager_role = RoleController.role_from_base(cursor, 'Manager')
         if current_user.has_role(manager_role):
-            print("4. Upgrade event")
+            print("5. Upgrade event")
 
         admin_role = RoleController.role_from_base(cursor, 'Admin')
         if current_user.has_role(admin_role):
-            print("5. Give new role for user")
-        print("6. Log out")
+            print("6. Give new role for user")
+        print("7. Log out")
 
         while True:
             choice = input()
@@ -188,15 +190,19 @@ def role_menu(cursor, connection, current_user: User):
                 clean()
                 help_organaized_event(cursor, connection, current_user)
                 break
-            if choice == 4 and current_user.has_role(manager_role):
+            if choice == 4 and current_user.has_role(club_member_role):
+                clean()
+                view_participant_of_my_event(cursor, connection, current_user)
+                break
+            if choice == 5 and current_user.has_role(manager_role):
                 clean()
                 view_and_update_event(cursor, connection, current_user)
                 break
-            if choice == 5 and current_user.has_role(club_member_role):
+            if choice == 6 and current_user.has_role(club_member_role):
                 clean()
                 view_and_update_user(cursor, connection, current_user)
                 break
-            if choice == 6:
+            if choice == 7:
                 clean()
                 print("You successful log out")
                 time.sleep(2)
@@ -357,6 +363,40 @@ def create_event(cursor, connection, current_user: User):
         clean()
 
 
+def view_participant_of_my_event(cursor, connection, current_user: User):
+    result = EventController.view_my_organaize_upcoming_event(cursor, connection, current_user)
+    if isinstance(result, list) and len(result) == 0:
+        print('You are has not upcoming events what you organaize')
+        time.sleep(3)
+        clean()
+    elif isinstance(result, list):
+        print("Your organaize upcoming events: ")
+        print_list_of_dictionary(result, 'event_date')
+        needed_event_id = input("Enter id event for what you want to see participant: ")
+        try:
+            needed_event_id = int(needed_event_id)
+            list_events = UserController.view_event_participant(cursor, connection, current_user, needed_event_id)
+            clean()
+            print_list_of_dictionary(list_events, 'birth_date')
+            print("\nEnter anything to return to main menu.")
+            save_input("")
+        except Exception as err:
+            clean()
+            print("Oops, what's wrong :(\n")
+            print(err)
+            print("\nEnter anything to return to main menu.")
+            save_input("")
+            clean()
+        clean()
+    else:
+        clean()
+        print("Oops, what's wrong :(\n")
+        print(result)
+        print("\nEnter anything to return to main menu.")
+        save_input("")
+        clean()
+
+
 def help_organaized_event(cursor, connection, current_user: User):
     result = EventController.get_upcoming_events(cursor, connection, current_user)
     if isinstance(result, list) and len(result) == 0:
@@ -477,7 +517,6 @@ def is_correct_date(date, date_type):
 
     except ValueError:
         return False
-
 
     if (month == 1 or month == 3 or month == 5 or month == 7 or month == 8 or month == 10 or month == 12):
         max_day = 31

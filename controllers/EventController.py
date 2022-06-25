@@ -145,3 +145,26 @@ def get_upcoming_events(cursor, connection, current_user: User):
         return err
     except ErrorUserPermissions as err:
         return ErrorUserPermissions
+
+
+def view_my_organaize_upcoming_event(cursor, connection, current_user: User):
+    try:
+        permission_role = RoleController.role_from_base(cursor, 'Club member')
+        if not current_user.has_role(permission_role):
+            raise ErrorUserPermissions
+        else:
+            main_organaizer_query = """SELECT e.id, e.name, t.name AS type,
+                                        e.description, e.event_date, e.location, e.price, e.restrictions
+                                        FROM events AS e
+                                        LEFT JOIN type AS t
+                                        ON e.type = t.id
+                                        WHERE e.status = (SELECT id from status WHERE status = 'Upcoming') AND e.main_organaizer = %s
+                                        ORDER BY e.id"""
+            cursor.execute(main_organaizer_query, (current_user.id, ))
+            records = cursor.fetchall()
+
+            return records
+    except Error as err:
+        return err
+    except ErrorUserPermissions as err:
+        return err
