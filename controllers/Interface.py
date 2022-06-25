@@ -1,3 +1,4 @@
+import datetime
 import json
 import mysql.connector
 from mysql.connector import Error
@@ -117,7 +118,7 @@ def sign_up(cursor, connection):
         last_name = input("Please, enter correct last name: ")
 
     birth_date = input("Enter your birth_date in format yyyy-mm-dd: ")
-    while not is_correct_date(birth_date, 'birth'):
+    while not is_correct_date(birth_date, 'birth_date'):
         birth_date = input("Please, enter your birth_date in correct format yyyy-mm-dd: ")
 
     email_pattern = re.compile("^\w+\@[a-zA-Z]+[\.[a-zA-Z]+]?[a-zA-Z]$")
@@ -288,7 +289,7 @@ def create_event(cursor, connection, current_user: User):
     description = input("Enter short description about your event: ")
 
     event_date = input("Enter event date in format yyyy-mm-dd: ")
-    while not is_correct_date(event_date, 'event'):
+    while not is_correct_date(event_date, 'event_date'):
         event_date = input("Please, enter event date in correct format yyyy-mm-dd: ")
 
     location = input("Enter location of your event: ")
@@ -466,4 +467,29 @@ def save_input(message):
 
 
 def is_correct_date(date, date_type):
+    try:
+        year, month, day = map(int, date.split('-'))
+        if date_type == 'birth_date' and year < 1940:
+            return False
+
+        elif date_type == 'event_date' and datetime.datetime(year, month, day) < datetime.datetime.now():
+            return False
+
+    except ValueError:
+        return False
+
+
+    if (month == 1 or month == 3 or month == 5 or month == 7 or month == 8 or month == 10 or month == 12):
+        max_day = 31
+    elif (month == 4 or month == 6 or month == 9 or month == 11):
+        max_day = 30
+    elif (year % 4 == 0 and year % 100 != 0) or (year % 400 == 0):
+        max_day = 29
+    else:
+        max_day = 28
+    if (month < 1) or (month > 12):
+        return False
+    elif (day < 1) or (day > max_day):
+        return False
+
     return True
