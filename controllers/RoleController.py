@@ -14,7 +14,7 @@ def role_from_base(cursor, needed_role):
 
 def get_role_list(cursor, connection, current_user: User):
     try:
-        permission_role = role_from_base(cursor, 'Club member')
+        permission_role = role_from_base(cursor, 'Admin')
         if not current_user.has_role(permission_role):
             raise ErrorUserPermissions
         else:

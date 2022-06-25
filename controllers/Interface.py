@@ -198,7 +198,7 @@ def role_menu(cursor, connection, current_user: User):
                 clean()
                 view_and_update_event(cursor, connection, current_user)
                 break
-            if choice == 6 and current_user.has_role(club_member_role):
+            if choice == 6 and current_user.has_role(admin_role):
                 clean()
                 view_and_update_user(cursor, connection, current_user)
                 break
@@ -317,6 +317,7 @@ def create_event(cursor, connection, current_user: User):
     while flag == '1':
         key = input('Enter name of your restriction: ')
         value = input('Enter details about your restriction: ')
+        restrictions[key] = value
         flag = input("If you have another restriction to your event, enter 1, else enter something other: ")
 
     restrictions = json.dumps(restrictions)
@@ -377,7 +378,11 @@ def view_participant_of_my_event(cursor, connection, current_user: User):
             needed_event_id = int(needed_event_id)
             list_events = UserController.view_event_participant(cursor, connection, current_user, needed_event_id)
             clean()
-            print_list_of_dictionary(list_events, 'birth_date')
+            if len(list_events) == 0:
+                print("There are not participant on your event yet")
+            else:
+                print("Participant of your event: ")
+                print_list_of_dictionary(list_events, 'birth_date')
             print("\nEnter anything to return to main menu.")
             save_input("")
         except Exception as err:
