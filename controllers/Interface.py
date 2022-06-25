@@ -125,7 +125,7 @@ def sign_up(cursor, connection):
     email_pattern = re.compile("^\w+\@[a-zA-Z]+[\.[a-zA-Z]+]?[a-zA-Z]$")
     email = input("Enter your email: ")
     while not (email_pattern.match(email)):
-        last_name = input("Please, enter correct email: ")
+        email = input("Please, enter correct email: ")
 
     phone_pattern = re.compile("^\+\d{1,3}\d{9}$")
     phone = input("Enter your phone number: ")

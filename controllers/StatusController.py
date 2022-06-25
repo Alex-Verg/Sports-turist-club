@@ -6,7 +6,7 @@ from controllers import RoleController
 
 def get_status_list(cursor, connection, current_user: User, current_status):
     try:
-        permission_role = RoleController.role_from_base(cursor, 'Club member')
+        permission_role = RoleController.role_from_base(cursor, 'Manager')
         if not current_user.has_role(permission_role):
             raise ErrorUserPermissions
         else:
